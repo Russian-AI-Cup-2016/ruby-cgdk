@@ -42,6 +42,8 @@ class RemoteProcessClient
 
   EMPTY_BYTE_ARRAY = ''
 
+  @players = nil
+  @buildings = nil
   @trees = nil
 
   def initialize(host, port)
@@ -55,7 +57,7 @@ class RemoteProcessClient
 
   def write_protocol_version_message
     write_enum(MessageType::PROTOCOL_VERSION)
-    write_int(1)
+    write_int(2)
   end
 
   def read_team_size_message
@@ -176,7 +178,7 @@ class RemoteProcessClient
   def read_buildings
     building_count = read_int
     if building_count < 0
-      return nil
+      return @buildings
     end
 
     buildings = []
@@ -185,7 +187,7 @@ class RemoteProcessClient
       buildings.push(read_building)
     end
 
-    buildings
+    @buildings = buildings
   end
 
   def write_buildings(buildings)
@@ -534,7 +536,7 @@ class RemoteProcessClient
   def read_players
     player_count = read_int
     if player_count < 0
-      return nil
+      return @players
     end
 
     players = []
@@ -543,7 +545,7 @@ class RemoteProcessClient
       players.push(read_player)
     end
 
-    players
+    @players = players
   end
 
   def write_players(players)
