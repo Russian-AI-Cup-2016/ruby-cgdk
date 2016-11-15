@@ -19,24 +19,20 @@ class Runner
       team_size = @remote_process_client.read_team_size_message
       game = @remote_process_client.read_game_context_message
 
-      strategies = []
-
-      team_size.times do |_|
-        strategies.push(MyStrategy::new)
+      strategies = Array.new(team_size) do
+        MyStrategy::new
       end
 
-      while (player_context = @remote_process_client.read_player_context_message) != nil
+      until (player_context = @remote_process_client.read_player_context_message).nil?
         player_wizards = player_context.wizards
-        break if player_wizards == nil || player_wizards.length != team_size
+        break if player_wizards.nil? || player_wizards.length != team_size
 
         moves = []
 
-        team_size.times do |wizard_index|
-          player_wizard = player_wizards[wizard_index]
-
+        strategies.zip(player_wizards) do |strategy, player_wizard|
           move = Move::new
           moves.push(move)
-          strategies[wizard_index].move(player_wizard, player_context.world, game, move)
+          strategy.move(player_wizard, player_context.world, game, move)
         end
 
         @remote_process_client.write_moves_message(moves)
