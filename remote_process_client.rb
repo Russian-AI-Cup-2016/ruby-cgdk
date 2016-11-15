@@ -896,7 +896,7 @@ class RemoteProcessClient
 
   def ensure_message_type(actual_type, expected_type)
     if actual_type != expected_type
-      raise ArgumentError "Received wrong message [actual=#{actual_type}, expected=#{expected_type}]."
+      raise ArgumentError, "Received wrong message [actual=#{actual_type}, expected=#{expected_type}]."
     end
   end
 
@@ -1106,7 +1106,7 @@ class RemoteProcessClient
       chunk = @socket.recv(byte_count - byte_array.length)
 
       if chunk.length == 0
-        raise IOError "Can't read #{byte_count} bytes from input stream."
+        raise IOError, "Can't read #{byte_count} bytes from input stream."
       end
 
       byte_array += chunk
