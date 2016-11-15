@@ -29,12 +29,10 @@ class Runner
 
         moves = []
 
-        team_size.times do |wizard_index|
-          player_wizard = player_wizards[wizard_index]
-
+        strategies.zip(player_wizards) do |strategy, player_wizard|
           move = Move::new
           moves.push(move)
-          strategies[wizard_index].move(player_wizard, player_context.world, game, move)
+          strategy.move(player_wizard, player_context.world, game, move)
         end
 
         @remote_process_client.write_moves_message(moves)
