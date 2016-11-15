@@ -23,9 +23,9 @@ class Runner
         MyStrategy::new
       end
 
-      while (player_context = @remote_process_client.read_player_context_message) != nil
+      until (player_context = @remote_process_client.read_player_context_message).nil?
         player_wizards = player_context.wizards
-        break if player_wizards == nil || player_wizards.length != team_size
+        break if player_wizards.nil? || player_wizards.length != team_size
 
         moves = []
 
