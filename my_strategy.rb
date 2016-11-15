@@ -10,7 +10,7 @@ class MyStrategy
   # @param [Move] move
   def move(me, world, game, move)
     move.speed = game.wizard_forward_speed
-    move.speed = game.wizard_strafe_speed
+    move.strafe_speed = game.wizard_strafe_speed
     move.turn = game.wizard_max_turn_angle
     move.action = ActionType::MAGIC_MISSILE
   end
