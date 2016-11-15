@@ -19,10 +19,8 @@ class Runner
       team_size = @remote_process_client.read_team_size_message
       game = @remote_process_client.read_game_context_message
 
-      strategies = []
-
-      team_size.times do |_|
-        strategies.push(MyStrategy::new)
+      strategies = Array.new(team_size) do
+        MyStrategy::new
       end
 
       while (player_context = @remote_process_client.read_player_context_message) != nil
