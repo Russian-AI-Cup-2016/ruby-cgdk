@@ -42,12 +42,10 @@ class RemoteProcessClient
 
   EMPTY_BYTE_ARRAY = ''
 
-  @players = nil
-  @buildings = nil
-  @trees = nil
-
   def initialize(host, port)
     @socket = TCPSocket::new(host, port)
+    @player_by_id = {}
+    @unit_by_id = {}
   end
 
   def write_token_message(token)
@@ -57,7 +55,7 @@ class RemoteProcessClient
 
   def write_protocol_version_message
     write_enum(MessageType::PROTOCOL_VERSION)
-    write_int(2)
+    write_int(3)
   end
 
   def read_team_size_message
@@ -140,13 +138,20 @@ class RemoteProcessClient
   end
 
   def read_building
-    unless read_boolean
+    flag = read_signed_byte
+
+    if flag == 0
       return nil
     end
 
-    Building::new(read_long, read_double, read_double, read_double, read_double, read_double, read_enum(Faction),
-                  read_double, read_int, read_int, read_statuses, read_enum(BuildingType), read_double, read_double,
-                  read_int, read_int, read_int)
+    if flag == 100
+      return @unit_by_id[read_long]
+    end
+
+    building = Building::new(read_long, read_double, read_double, read_double, read_double, read_double,
+                             read_enum(Faction), read_double, read_int, read_int, read_statuses,
+                             read_enum(BuildingType), read_double, read_double, read_int, read_int, read_int)
+    @unit_by_id[building.id] = building
   end
 
   def write_building(building)
@@ -417,13 +422,20 @@ class RemoteProcessClient
   end
 
   def read_minion
-    unless read_boolean
+    flag = read_signed_byte
+
+    if flag == 0
       return nil
     end
 
-    Minion::new(read_long, read_double, read_double, read_double, read_double, read_double, read_enum(Faction),
-                read_double, read_int, read_int, read_statuses, read_enum(MinionType), read_double, read_int, read_int,
-                read_int)
+    if flag == 100
+      return @unit_by_id[read_long]
+    end
+
+    minion = Minion::new(read_long, read_double, read_double, read_double, read_double, read_double, read_enum(Faction),
+                         read_double, read_int, read_int, read_statuses, read_enum(MinionType), read_double, read_int,
+                         read_int, read_int)
+    @unit_by_id[minion.id] = minion
   end
 
   def write_minion(minion)
@@ -511,11 +523,18 @@ class RemoteProcessClient
   end
 
   def read_player
-    unless read_boolean
+    flag = read_signed_byte
+
+    if flag == 0
       return nil
     end
 
-    Player::new(read_long, read_boolean, read_string, read_boolean, read_int, read_enum(Faction))
+    if flag == 100
+      return @player_by_id[read_long]
+    end
+
+    player = Player::new(read_long, read_boolean, read_string, read_boolean, read_int, read_enum(Faction))
+    @player_by_id[player.id] = player
   end
 
   def write_player(player)
@@ -712,12 +731,19 @@ class RemoteProcessClient
   end
 
   def read_tree
-    unless read_boolean
+    flag = read_signed_byte
+
+    if flag == 0
       return nil
     end
 
-    Tree::new(read_long, read_double, read_double, read_double, read_double, read_double, read_enum(Faction),
-              read_double, read_int, read_int, read_statuses)
+    if flag == 100
+      return @unit_by_id[read_long]
+    end
+
+    tree = Tree::new(read_long, read_double, read_double, read_double, read_double, read_double, read_enum(Faction),
+                     read_double, read_int, read_int, read_statuses)
+    @unit_by_id[tree.id] = tree
   end
 
   def write_tree(tree)
@@ -1009,9 +1035,12 @@ class RemoteProcessClient
     write_bytes(value)
   end
 
+  def read_signed_byte
+    read_bytes(SIGNED_BYTE_SIZE_BYTES).unpack('c')[0]
+  end
+
   def read_boolean
-    byte_array = read_bytes(SIGNED_BYTE_SIZE_BYTES)
-    byte_array.unpack('c')[0] != 0
+    read_signed_byte != 0
   end
 
   def write_boolean(value)
